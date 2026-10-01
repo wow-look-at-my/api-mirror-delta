@@ -290,10 +290,14 @@ func render(v any) (json.RawMessage, bool) {
 	return mustJSON(string(b[:maxValue])), true
 }
 
+// mustJSON marshals without HTML escaping, so a Link header reads as <...>
+// in a log line.
 func mustJSON(v any) json.RawMessage {
-	b, err := json.Marshal(v)
-	if err != nil {
+	var buf bytes.Buffer
+	enc := json.NewEncoder(&buf)
+	enc.SetEscapeHTML(false)
+	if err := enc.Encode(v); err != nil {
 		panic(fmt.Sprintf("marshal %T: %v", v, err))
 	}
-	return b
+	return bytes.TrimSuffix(buf.Bytes(), []byte("\n"))
 }
