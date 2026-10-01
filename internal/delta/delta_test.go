@@ -59,10 +59,16 @@ func newDelta(t *testing.T, cfg *Config) (*Delta, *Reporter) {
 
 func TestProxyServesTruthAndReportsMirrorDifferences(t *testing.T) {
 	truth := newFakeAPI(t, 200, func(base, path string) string {
-		return `{"name":"demo","url":"` + base + path + `","stars":5,"owner":{"login":"o","html_url":"` + base + `/o"}}`
+		return string(mustJSON(map[string]any{
+			"name": "demo", "url": base + path, "stars": 5,
+			"owner": map[string]any{"login": "o", "html_url": base + "/o"},
+		}))
 	})
 	mirror := newFakeAPI(t, 200, func(base, path string) string {
-		return `{"name":"demo","url":"` + base + path + `","stars":4,"owner":{"login":"o"}}`
+		return string(mustJSON(map[string]any{
+			"name": "demo", "url": base + path, "stars": 4,
+			"owner": map[string]any{"login": "o"},
+		}))
 	})
 	report := filepath.Join(t.TempDir(), "delta.ndjson")
 	d, rep := newDelta(t, &Config{

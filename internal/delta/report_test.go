@@ -9,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/wow-look-at-my/go-containers/set"
 )
 
 func TestRecentRingKeepsTheNewestAndCountsEvictions(t *testing.T) {
@@ -41,7 +42,7 @@ func TestSummaryCapLogsWhatItDrops(t *testing.T) {
 
 func TestSummaryNamesARuleThatMatchedNothing(t *testing.T) {
 	rules := []*Rule{{Path: "$.a", Reason: "why"}}
-	require.NoError(t, rules[0].validate(map[string]bool{TruthName: true}))
+	require.NoError(t, rules[0].validate(set.Of(TruthName)))
 	rep, err := NewReporter(slog.New(slog.NewTextHandler(io.Discard, nil)), "", 1, rules)
 	require.NoError(t, err)
 	var text bytes.Buffer

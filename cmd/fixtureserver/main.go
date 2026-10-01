@@ -1,31 +1,44 @@
-// Command fixtureserver answers GET /x from <dir>/x.json, so a test can stand
-// up a fake truth and a fake mirror that disagree in known ways. Each
-// "{self}" in a fixture becomes the server's own base URL.
+// Command fixtureserver answers each GET path from one JSON file, so a test
+// can stand up a fake truth and a fake mirror that disagree in known ways.
+// Each "{self}" in a fixture becomes the server's own base URL.
 package main
 
 import (
-	"errors"
 	"flag"
 	"fmt"
-	"io/fs"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strings"
 )
 
+type routes map[string]string
+
+func (r routes) String() string { return fmt.Sprint(map[string]string(r)) }
+
+func (r routes) Set(v string) error {
+	path, file, ok := strings.Cut(v, "=")
+	if !ok || !strings.HasPrefix(path, "/") {
+		return fmt.Errorf("want /path=file.json, got %q", v)
+	}
+	r[path] = file
+	return nil
+}
+
 func main() {
-	dir := flag.String("dir", ".", "fixture directory")
-	listen := flag.String("listen", "127.0.0.1:0", "listen address")
+	rs := routes{}
+	flag.Var(rs, "route", "a route as /path=file.json; repeatable")
+	listen := flag.String("listen", "127.0.0.1:8099", "listen address")
 	flag.Parse()
 	self := "http://" + *listen
 	err := http.ListenAndServe(*listen, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		name := filepath.Join(*dir, filepath.FromSlash(strings.TrimPrefix(r.URL.Path, "/"))+".json")
-		b, err := os.ReadFile(name)
-		if errors.Is(err, fs.ErrNotExist) {
-			http.Error(w, `{"message":"Not Found"}`, http.StatusNotFound)
+		file, ok := rs[r.URL.Path]
+		if !ok {
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			w.WriteHeader(http.StatusNotFound)
+			_, _ = w.Write([]byte(`{"message":"Not Found"}`))
 			return
 		}
+		b, err := os.ReadFile(file)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

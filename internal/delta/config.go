@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/wow-look-at-my/go-containers/set"
 	"gopkg.in/yaml.v3"
 )
 
@@ -200,22 +201,21 @@ func (c *Config) Validate() error {
 	if len(c.Mirrors) == 0 {
 		errs = append(errs, errors.New("mirrors: at least one mirror is required"))
 	}
-	names := map[string]bool{TruthName: true}
+	names := set.Of(TruthName)
 	targets := append([]*Target{&c.Truth}, pointers(c.Mirrors)...)
 	for i, t := range targets {
 		if i > 0 {
 			if t.Name == "" {
 				errs = append(errs, fmt.Errorf("mirrors[%d]: name is required", i-1))
-			} else if names[t.Name] {
+			} else if !names.Add(t.Name) {
 				errs = append(errs, fmt.Errorf("mirrors[%d]: name %q is used twice", i-1, t.Name))
 			}
-			names[t.Name] = true
 		}
 		if err := t.resolve(); err != nil {
 			errs = append(errs, fmt.Errorf("%s: %w", t.Name, err))
 		}
 	}
-	if !names[c.Serve] {
+	if !names.Contains(c.Serve) {
 		errs = append(errs, fmt.Errorf("serve: %q names no target", c.Serve))
 	}
 	for i := range c.Compare {
@@ -268,7 +268,7 @@ func (t *Target) resolve() error {
 	return nil
 }
 
-func (r *Rule) validate(targets map[string]bool) error {
+func (r *Rule) validate(targets set.Set[string]) error {
 	if err := r.compile(); err != nil {
 		return err
 	}
@@ -277,7 +277,7 @@ func (r *Rule) validate(targets map[string]bool) error {
 			return fmt.Errorf("kind %q: want one of %v", k, allKinds)
 		}
 	}
-	if r.Mirror != "" && (r.Mirror == TruthName || !targets[r.Mirror]) {
+	if r.Mirror != "" && (r.Mirror == TruthName || !targets.Contains(r.Mirror)) {
 		return fmt.Errorf("mirror %q names no mirror", r.Mirror)
 	}
 	if r.Path != "" && r.Header != "" {

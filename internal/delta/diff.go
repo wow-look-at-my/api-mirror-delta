@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/wow-look-at-my/go-containers/set"
 	"net/http"
 	"sort"
 	"strconv"
@@ -28,10 +29,10 @@ const (
 var allKinds = []Kind{KindStatus, KindHeader, KindMissing, KindExtra, KindChanged, KindType, KindBody, KindError}
 
 // jsonKinds are the kinds that carry a JSONPath location.
-var jsonKinds = []Kind{KindMissing, KindExtra, KindChanged, KindType}
+var jsonKinds = set.Of[Kind](KindMissing, KindExtra, KindChanged, KindType)
 
 func (k Kind) isJSON() bool {
-	for _, j := range jsonKinds {
+	for j := range jsonKinds.All() {
 		if k == j {
 			return true
 		}

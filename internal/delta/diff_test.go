@@ -90,7 +90,7 @@ func TestCompareError(t *testing.T) {
 }
 
 func TestLargeValuesAreMarkedTruncated(t *testing.T) {
-	ds := diffsOf(t, `{"a":"`+strings.Repeat("x", 3000)+`"}`, `{}`)
+	ds := diffsOf(t, string(mustJSON(map[string]string{"a": strings.Repeat("x", 3000)})), `{}`)
 	d := ds["missing $.a"]
 	assert.True(t, d.Truncated)
 	assert.LessOrEqual(t, len(d.Truth), maxValue+16)
