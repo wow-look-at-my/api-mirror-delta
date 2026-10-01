@@ -1,0 +1,12 @@
+# Compiled binaries
+/api-mirror-delta
+/fixtureserver
+
+# Runtime output
+*.ndjson
+/delta.yaml
+
+# Go build/cache artifacts
+/coverage.out
+/coverage.html
+/build/
