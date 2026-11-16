@@ -1,3 +1,5 @@
+// config.go holds TruthName.
+
 package delta
 
 import (

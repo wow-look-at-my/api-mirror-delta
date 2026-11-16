@@ -1,3 +1,5 @@
+// serve.go holds drainTimeout.
+
 package main
 
 import (

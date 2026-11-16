@@ -1,16 +1,15 @@
 # Configuration reference
 
-The config is YAML. An unknown key is an error. As a result, a misspelt rule fails at load rather than ignoring nothing. Every problem in a config is reported at once. Command-line flags apply on top of the file: `--truth` and `--mirror` replace, `--ignore` adds.
+The config is YAML. An unknown key is an error. As a result, a misspelt rule fails at load rather than ignoring nothing. Every problem in a config is reported at once.
 
 | Key | Default | Meaning |
 | --- | --- | --- |
 | `listen` | `127.0.0.1:8090` | Address `serve` listens on. |
 | `truth.url` | required | Base URL of the real API. A base path is kept: `https://ghe.example/api/v3`. |
 | `truth.headers` | none | Headers set on every request to the truth, replacing the client's. `${VAR}` reads the environment; an unset variable is an error. |
-| `mirrors[]` | required | `name`, `url`, `headers`, as for the truth. Names are unique and never `truth`. |
+| `mirrors[]` | required | Names are unique and never `truth`. |
 | `serve` | `truth` | The target whose answer the client receives. |
 | `compare[]` | `GET`, `HEAD` | `method` and `route` (a regex on the path). A request no entry matches goes to the served target alone and counts as `uncompared`. |
-| `headers` | `Content-Type`, `Link`, `Location` | Response headers compared. Most headers differ on every request, so this is a list of what to check, not what to skip. |
 | `annotate` | `X-Mirror-Cache`, `X-Mirror-Passthrough-Reason` | Mirror response headers copied into each record, so a difference can be read against hit or miss. |
 | `report` | none | NDJSON file; one record per request per mirror, appended. |
 | `recent` | `500` | Records kept in memory for `/_delta/recent`. |
@@ -51,7 +50,7 @@ ignore:
     route: ^/user$
 ```
 
-A rule must name a path, a header or a kind. A rule that names none will hide everything. The first rule that covers a difference claims it. The summary lists every rule with the number of differences it hid. It marks a rule at zero, because a rule that never matches is either stale or wrong.
+A rule must name a path, a header or a kind. A rule that names none will hide everything. The first rule that covers a difference claims it. The summary lists every rule with the number of differences it hid. It marks a rule at zero, because a rule that never matches is either stale or incorrect.
 
 ### JSONPath subset
 
@@ -66,12 +65,12 @@ A pattern covers the node it selects and that node's whole subtree.
 | `..name` | `name` at any depth below |
 | `.*_url` | a member whose name matches the glob; `*` is any run of characters |
 
-A filter, a slice or a union is an error at load, never a silent non-match. A `*` inside a quoted name is a literal star.
+A filter, a slice or a union is an error at load, not a silent non-match. A `*` inside a quoted name is a literal star.
 
 ## The report surfaces
 
 - The log: one WARN line per difference that no rule hid, one ERROR line per target that did not answer. `-v` also logs every match.
-- `/_delta/summary` (JSON) and `/_delta/summary?format=text`: counts, every ignore rule, and one row per method, path, mirror, kind and path shape. A shape writes every index as `[*]`, so one difference in every element of a list is one row. The summary keeps at most 10000 rows. Past that it counts and logs what it can not keep.
+- `/_delta/summary` (JSON) and `/_delta/summary?format=text`: counts, every ignore rule, and one row per method, path, mirror, kind and path shape. A shape writes every index as `[*]`, so one difference in every element of a list is one row. The summary keeps a bounded number of rows. Past that it counts and logs what it can not keep.
 - `/_delta/recent?limit=N`: the newest records, newest first.
 - The NDJSON report file, when `report` is set. Each record carries the unignored `diffs` and the `ignored` ones, each with the index of the rule that hid it. It also carries both status codes, both latencies, and the annotations.
 

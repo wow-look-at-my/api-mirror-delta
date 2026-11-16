@@ -1,3 +1,5 @@
+// delta.go holds AdminPrefix.
+
 package delta
 
 import (

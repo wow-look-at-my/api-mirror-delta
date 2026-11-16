@@ -1,3 +1,5 @@
+// diff.go holds Kind.
+
 package delta
 
 import (

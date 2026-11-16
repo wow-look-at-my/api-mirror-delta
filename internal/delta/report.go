@@ -1,3 +1,5 @@
+// report.go holds Side.
+
 package delta
 
 import (

@@ -1,3 +1,5 @@
+// compare.go holds errDiffers.
+
 package main
 
 import (
