@@ -21,13 +21,13 @@ api-mirror-delta compare --truth https://api.github.com --mirror local=http://12
 
 ## What it compares
 
-- The status code, the headers you list, and the body. A JSON body is diffed by structure. Anything else byte by byte.
+- The status code, the headers you list, and the body. By structure, a JSON body is diffed. Anything else byte by byte.
 - Each target's own base URL is replaced with `{base}` first, so self-links agree.
 - Only `GET` and `HEAD` fan out by default. Other methods go to the served target alone, so a write runs once.
 
 ## Ignoring differences
 
-Each rule selects differences by JSONPath (`$..url`, `$.items[*].id`, `$..*_url`), by header, by kind (`missing`, `extra`, `changed`, `type`, `status`, `header`, `body`, `error`), and optionally by route and mirror. The summary counts what each rule hides and flags a rule that matched nothing.
+Each rule selects differences by JSONPath, by header, by kind, and optionally by route and mirror. The summary counts what each rule hides and flags a rule that matched nothing.
 
 [`samples/github.yaml`](samples/github.yaml) is a starting config. [`docs/config.md`](docs/config.md) is the full reference.
 

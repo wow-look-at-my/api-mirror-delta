@@ -1,4 +1,4 @@
-// Command fixtureserver answers each GET path from one JSON file, so a test
+// Command fixtureserver answers each GET path from one JSON file. A test
 // can stand up a fake truth and a fake mirror that disagree in known ways.
 // Each "{self}" in a fixture becomes the server's own base URL.
 package main

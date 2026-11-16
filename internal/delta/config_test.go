@@ -1,5 +1,7 @@
 package delta
 
+import _ "embed"
+
 import (
 	"os"
 	"path/filepath"
@@ -19,25 +21,7 @@ func writeConfig(t *testing.T, body string) string {
 
 func TestLoadConfig(t *testing.T) {
 	t.Setenv("DELTA_TEST_TOKEN", "secret")
-	c, err := LoadConfig(writeConfig(t, `
-listen: 127.0.0.1:9999
-truth:
-  url: https://api.example/
-  headers:
-    Authorization: token ${DELTA_TEST_TOKEN}
-mirrors:
-  - name: local
-    url: http://127.0.0.1:8080
-timeout: 5s
-ignore:
-  - path: $..url
-    kinds: [missing]
-    reason: the mirror drops URL fields
-  - header: Link
-  - method: get
-    route: ^/rate_limit$
-    kinds: [changed]
-`))
+	c, err := LoadConfig(writeConfig(t, testLoadConfigYml))
 	require.NoError(t, err)
 	require.NoError(t, c.Validate())
 	assert.Equal(t, "https://api.example", c.Truth.base)
@@ -57,7 +41,7 @@ ignore:
 }
 
 func TestLoadConfigRejectsUnknownKeys(t *testing.T) {
-	_, err := LoadConfig(writeConfig(t, "truth:\n  url: http://x\nignroe:\n  - path: $.a\n"))
+	_, err := LoadConfig(writeConfig(t, testLoadConfigRejectsUnknownKeysYml))
 	assert.ErrorContains(t, err, "ignroe")
 }
 
@@ -98,3 +82,9 @@ func TestRuleScopesToMirror(t *testing.T) {
 	assert.Equal(t, 0, c.ruleFor("GET", "/", "a", d))
 	assert.Equal(t, -1, c.ruleFor("GET", "/", "b", d))
 }
+
+//go:embed testdata/test-load-config.yml
+var testLoadConfigYml string
+
+//go:embed testdata/test-load-config-rejects-unknown-keys.yml
+var testLoadConfigRejectsUnknownKeysYml string

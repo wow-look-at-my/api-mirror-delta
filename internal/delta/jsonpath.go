@@ -1,3 +1,5 @@
+// jsonpath.go holds Seg.
+
 package delta
 
 import (
